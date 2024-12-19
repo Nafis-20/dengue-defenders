@@ -7,12 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:926710355188:android:4fc88c0ec997ed72c3faa1",
+        "mobilesdk_app_id": "1:926710355188:android:15fa6f669de7704ec3faa1",
         "android_client_info": {
-          "package_name": "com.serg.dengue_def"
+          "package_name": "com.example.dengue_def"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "926710355188-ljao85c4u6jnvhh5rft5ktf9dld80o8k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.dengue_def",
+            "certificate_hash": "2f58d25ca561e7ab5b17e04e5d502975b6a76b7f"
+          }
+        },
+        {
+          "client_id": "926710355188-vbk95u47hc80psf84gtv2p19oeraise9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBmBH1iifQJpnMWbVs1IeOhOoRFQibgG0g"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "926710355188-vbk95u47hc80psf84gtv2p19oeraise9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
