@@ -41,17 +41,17 @@ class _ReportBreedingSiteState extends State<ReportBreedingSite> {
     try {
       // Upload the file to Firebase Storage
       final storageRef =
-          FirebaseStorage.instance.ref().child('site_photos/$fileName');
+          FirebaseStorage.instance.ref().child('breeding_photos/$fileName');
       await storageRef.putFile(file);
 
-      // Get the download URL
+      // Get the download URL and save it to Firestore
       String downloadURL = await storageRef.getDownloadURL();
-
-      // Save the download URL to Firestore
-      await FirebaseFirestore.instance.collection('site_photo').add({
+      await FirebaseFirestore.instance.collection('breeding_photo').add({
         'url': downloadURL,
         'uploaded_at': DateTime.now(),
       });
+
+      print('Photo uploaded successfully!');
     } catch (e) {
       debugPrint('Error uploading file: $e');
     }
