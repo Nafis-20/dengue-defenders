@@ -1,4 +1,7 @@
+// File: lib/user/user_home_page.dart
 import 'package:flutter/material.dart';
+import '../user/report_breeding_site.dart';
+import '../user/play_snake_game.dart';
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({super.key});
@@ -88,7 +91,14 @@ class UserHomePage extends StatelessWidget {
                       context,
                       title: "Report Breeding Sites",
                       icon: Icons.camera_alt,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ReportBreedingSite(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 10), // Reduced gap between buttons
                     _buildDutyButton(
@@ -102,7 +112,14 @@ class UserHomePage extends StatelessWidget {
                       context,
                       title: "Play the Snake-Ladder Game",
                       icon: Icons.games,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PlaySnakeGame(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 10), // Reduced gap between buttons
                     _buildDutyButton(
