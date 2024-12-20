@@ -1,4 +1,3 @@
-// File: lib/user/play_snake_game.dart
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:math';
@@ -110,6 +109,72 @@ class _PlaySnakeGameState extends State<PlaySnakeGame> {
     });
   }
 
+  // Create a grid of 100 tiles with ladder and snake visuals
+  Widget buildBoard() {
+    List<Widget> tiles = [];
+    for (int i = 0; i < 100; i++) {
+      bool isPlayer1 = i == player1Position;
+      bool isPlayer2 = i == player2Position;
+      bool isLadder = ladders.contains(i);
+      bool isSnake = snakes.contains(i);
+
+      tiles.add(
+        Container(
+          width: 30,
+          height: 30,
+          margin: EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: isLadder
+                ? Colors.blue
+                : isSnake
+                    ? Colors.red
+                    : Colors.white,
+            border: Border.all(color: Colors.black, width: 1),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (isPlayer1)
+                Positioned(
+                  child: CircleAvatar(
+                    radius: 8,
+                    backgroundColor: Colors.red,
+                  ),
+                ),
+              if (isPlayer2)
+                Positioned(
+                  child: CircleAvatar(
+                    radius: 8,
+                    backgroundColor: Colors.green,
+                  ),
+                ),
+              if (isLadder)
+                Positioned(
+                  child: Icon(Icons.arrow_upward, color: Colors.white),
+                ),
+              if (isSnake)
+                Positioned(
+                  child: Icon(Icons.arrow_downward, color: Colors.white),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 10,
+        childAspectRatio: 1,
+      ),
+      itemCount: 100,
+      itemBuilder: (context, index) {
+        return tiles[index];
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,6 +209,12 @@ class _PlaySnakeGameState extends State<PlaySnakeGame> {
                   SizedBox(height: 20),
                   Text(
                       'Current Player: ${currentPlayer == 1 ? "Player 1 (Red)" : "Player 2 (Green)"}'),
+                  SizedBox(height: 20),
+                  Container(
+                    height: 300,
+                    width: 300,
+                    child: buildBoard(), // Displaying the board
+                  ),
                 ],
               ),
             if (gameOver)
