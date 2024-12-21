@@ -116,7 +116,7 @@ class UserHomePage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const PlaySnakeGame(),
+                            builder: (context) => const SnakeLadderGame(),
                           ),
                         );
                       },
