@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../user/report_breeding_site.dart';
 import '../user/play_snake_game.dart';
+import '../user/play_tictactoe.dart';
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({super.key});
@@ -126,7 +127,14 @@ class UserHomePage extends StatelessWidget {
                       context,
                       title: "Play the Tic-Tac-Toe Game",
                       icon: Icons.grid_on,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TicTacToeGame(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
