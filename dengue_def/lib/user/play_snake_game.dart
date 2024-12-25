@@ -182,10 +182,20 @@ class _SnakeLadderGameState extends State<SnakeLadderGame> {
 
   Widget buildBoard() {
     List<Widget> tiles = [];
-    for (int i = 100; i > 0; i--) {
-      tiles.add(buildTile(i));
+    bool leftToRight = true;
+
+    for (int row = 0; row < 10; row++) {
+      List<int> rowNumbers =
+          List.generate(10, (index) => (row * 10 + index + 1));
+      if (!leftToRight) rowNumbers = rowNumbers.reversed.toList();
+
+      tiles.addAll(rowNumbers.map((number) => buildTile(number)));
+
+      leftToRight = !leftToRight;
     }
+
     return GridView.builder(
+      reverse: true, // Ensures 1 is at the bottom
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 10,
       ),
