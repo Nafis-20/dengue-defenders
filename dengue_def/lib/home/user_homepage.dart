@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../user/report_breeding_site.dart';
 import '../user/play_snake_game.dart';
 import '../user/play_tictactoe.dart';
+import '../user/check_hotspot.dart';
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({super.key});
@@ -106,7 +107,13 @@ class UserHomePage extends StatelessWidget {
                       context,
                       title: "Check Hotspot Map",
                       icon: Icons.map,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => CheckHotspotMapPage()),
+                        );
+                      },
                     ),
                     const SizedBox(height: 10), // Reduced gap between buttons
                     _buildDutyButton(
