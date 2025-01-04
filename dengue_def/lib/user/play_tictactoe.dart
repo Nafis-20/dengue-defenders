@@ -24,7 +24,180 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
       ],
       'answer': 1,
     },
-    // Add more questions as needed
+    {
+      'question':
+          "How often should you empty or clean water containers to prevent mosquito breeding?",
+      'options': [
+        "Once a day",
+        "Every two days",
+        "Once a week",
+        "Once a month"
+      ],
+      'answer': 2,
+    },
+    {
+      'question':
+          "Which of the following can collect stagnant water and attract mosquitoes?",
+      'options': [
+        "Water storage tanks and plant saucers",
+        "Furniture and carpets",
+        "Air conditioners",
+        "Cellphones and cables"
+      ],
+      'answer': 0,
+    },
+    {
+      'question': "Why is it important to cover water containers?",
+      'options': [
+        "To keep water clean",
+        "To prevent mosquitoes from laying eggs",
+        "To stop water from evaporating",
+        "To improve taste"
+      ],
+      'answer': 1,
+    },
+    {
+      'question':
+          "True or False: Aedes mosquitoes can breed in very small amounts of water, even in a bottle cap.",
+      'options': ["True", "False"],
+      'answer': 0,
+    },
+    {
+      'question':
+          "What should you do with old tires or containers that collect water in your backyard?",
+      'options': [
+        "Throw them in the river",
+        "Store them carefully",
+        "Dispose of them or cover them",
+        "Use them as decorations"
+      ],
+      'answer': 2,
+    },
+    {
+      'question': "What are two common symptoms of dengue fever?",
+      'options': [
+        "Sore throat and sneezing",
+        "High fever and severe headache",
+        "Stomach ache and rash",
+        "Cough and chills"
+      ],
+      'answer': 1,
+    },
+    {
+      'question': "What pattern do Aedes mosquitoes have on their body?",
+      'options': [
+        "Green and yellow spots",
+        "Red and black lines",
+        "Black and white stripes",
+        "Blue and white dots"
+      ],
+      'answer': 2,
+    },
+    {
+      'question':
+          "True or False: If you have dengue fever, you should drink plenty of fluids.",
+      'options': ["True", "False"],
+      'answer': 0,
+    },
+    {
+      'question': "What is one way to protect yourself from mosquito bites?",
+      'options': [
+        "Avoid water altogether",
+        "Use mosquito repellent or wear long sleeves and pants",
+        "Drink lemon juice daily",
+        "Use loud noises to scare mosquitoes"
+      ],
+      'answer': 1,
+    },
+    {
+      'question': "When are Aedes mosquitoes most active in biting people?",
+      'options': [
+        "Midnight",
+        "Noon",
+        "Early morning and late afternoon",
+        "Only on rainy days"
+      ],
+      'answer': 2,
+    },
+    {
+      'question':
+          "True or False: Dengue fever can be spread from one person to another directly.",
+      'options': ["True", "False"],
+      'answer': 1,
+    },
+    {
+      'question':
+          "What should you do if someone in your family shows symptoms of dengue fever?",
+      'options': [
+        "Let them rest at home",
+        "Take them to the doctor immediately",
+        "Give them cold water and wait",
+        "Spray mosquito repellent around them"
+      ],
+      'answer': 1,
+    },
+    {
+      'question':
+          "Why is it important to prevent mosquitoes from breeding around your home?",
+      'options': [
+        "To reduce the risk of food poisoning",
+        "To make the area smell better",
+        "To reduce the risk of dengue fever in the community",
+        "To increase water usage"
+      ],
+      'answer': 2,
+    },
+    {
+      'question':
+          "When is National Dengue Prevention Day usually observed in Malaysia?",
+      'options': ["January", "June", "August", "December"],
+      'answer': 1,
+    },
+    {
+      'question': "What kind of mosquito spreads dengue fever?",
+      'options': [
+        "Anopheles mosquito",
+        "Aedes mosquito",
+        "Culex mosquito",
+        "Tabanus mosquito"
+      ],
+      'answer': 1,
+    },
+    {
+      'question': "What does the Aedes mosquito bite to transmit dengue?",
+      'options': [
+        "Only humans",
+        "Humans and other animals",
+        "Only fish",
+        "Birds"
+      ],
+      'answer': 0,
+    },
+    {
+      'question': "What is one common way dengue spreads in communities?",
+      'options': [
+        "Eating contaminated food",
+        "Through infected mosquito bites",
+        "Sharing personal items",
+        "Drinking unclean water"
+      ],
+      'answer': 1,
+    },
+    {
+      'question': "How can communities prevent mosquito breeding?",
+      'options': [
+        "Keep lights on overnight",
+        "Wear shoes inside the house",
+        "Clean and cover water containers",
+        "Plant more trees"
+      ],
+      'answer': 2,
+    },
+    {
+      'question': "How many stages does the Aedes mosquito's life cycle have?",
+      'options': ["2", "4", "3", "5"],
+      'answer': 1,
+    }
   ];
 
   void handleTileTap(int index) {
