@@ -1,9 +1,8 @@
 // import 'dart:io';
-// import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flutter/material.dart';
 // import 'package:image_picker/image_picker.dart';
-// import 'package:firebase_storage/firebase_storage.dart';
 // import 'package:path/path.dart' as path;
+// import 'package:cloud_firestore/cloud_firestore.dart';
 
 // class ReportBreedingSite extends StatefulWidget {
 //   const ReportBreedingSite({super.key});
@@ -40,28 +39,15 @@
 //     }
 //   }
 
-//   Future<void> _uploadToFirestore() async {
-//     if (_selectedImage == null ||
-//         _locationController.text.isEmpty ||
-//         _reasonController.text.isEmpty) {
-//       _showErrorPopup("Please fill all fields and upload an image.");
+//   Future<void> _saveToFirestore() async {
+//     if (_locationController.text.isEmpty || _reasonController.text.isEmpty) {
+//       _showErrorPopup("Please fill all fields.");
 //       return;
 //     }
 
 //     try {
-//       // Ensure unique file names by appending a timestamp
-//       String uniqueFileName =
-//           '${DateTime.now().millisecondsSinceEpoch}_$_fileName';
-
-//       // Upload the file to Firebase Storage
-//       final storageRef =
-//           FirebaseStorage.instance.ref().child('site_photos/$uniqueFileName');
-//       await storageRef.putFile(_selectedImage!);
-
-//       // Get the download URL and save it to Firestore
-//       String downloadURL = await storageRef.getDownloadURL();
+//       // Save location and reason only in Firestore
 //       await FirebaseFirestore.instance.collection('site_photo').add({
-//         'url': downloadURL,
 //         'location': _locationController.text,
 //         'reason': _reasonController.text,
 //         'uploaded_at': DateTime.now(),
@@ -69,8 +55,8 @@
 
 //       _showSuccessPopup();
 //     } catch (e) {
-//       debugPrint('Error uploading file: $e');
-//       _showErrorPopup("Error uploading file: $e");
+//       debugPrint('Error saving data: $e');
+//       _showErrorPopup("Error saving data: $e");
 //     }
 //   }
 
@@ -80,7 +66,7 @@
 //       builder: (BuildContext context) {
 //         return AlertDialog(
 //           title: const Text('Successful'),
-//           content: const Text('The data has been uploaded successfully.'),
+//           content: const Text('The data has been saved successfully.'),
 //           actions: [
 //             TextButton(
 //               child: const Text('OK'),
@@ -196,8 +182,8 @@
 //               ),
 //               const SizedBox(height: 20),
 //               ElevatedButton.icon(
-//                 onPressed: _uploadToFirestore,
-//                 icon: const Icon(Icons.cloud_upload),
+//                 onPressed: _saveToFirestore,
+//                 icon: const Icon(Icons.save),
 //                 label: const Text("Submit"),
 //               ),
 //             ],
@@ -212,6 +198,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google Maps plugin
 
 class ReportBreedingSite extends StatefulWidget {
   const ReportBreedingSite({super.key});
@@ -222,11 +209,12 @@ class ReportBreedingSite extends StatefulWidget {
 
 class _ReportBreedingSiteState extends State<ReportBreedingSite> {
   final ImagePicker _picker = ImagePicker();
-  final TextEditingController _locationController = TextEditingController();
   final TextEditingController _reasonController = TextEditingController();
 
   File? _selectedImage;
   String? _fileName;
+
+  LatLng? _selectedLocation; // Store the selected location
 
   Future<void> _openCamera() async {
     final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
@@ -249,15 +237,18 @@ class _ReportBreedingSiteState extends State<ReportBreedingSite> {
   }
 
   Future<void> _saveToFirestore() async {
-    if (_locationController.text.isEmpty || _reasonController.text.isEmpty) {
-      _showErrorPopup("Please fill all fields.");
+    if (_reasonController.text.isEmpty || _selectedLocation == null) {
+      _showErrorPopup("Please fill all fields and mark a location.");
       return;
     }
 
     try {
-      // Save location and reason only in Firestore
+      // Save location and reason in Firestore
       await FirebaseFirestore.instance.collection('site_photo').add({
-        'location': _locationController.text,
+        'location': {
+          'latitude': _selectedLocation!.latitude,
+          'longitude': _selectedLocation!.longitude,
+        },
         'reason': _reasonController.text,
         'uploaded_at': DateTime.now(),
       });
@@ -284,8 +275,8 @@ class _ReportBreedingSiteState extends State<ReportBreedingSite> {
                 setState(() {
                   _selectedImage = null;
                   _fileName = null;
-                  _locationController.clear();
                   _reasonController.clear();
+                  _selectedLocation = null;
                 });
               },
             ),
@@ -313,6 +304,20 @@ class _ReportBreedingSiteState extends State<ReportBreedingSite> {
         );
       },
     );
+  }
+
+  Future<void> _selectLocationOnMap() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MapScreen(),
+      ),
+    );
+    if (result != null && result is LatLng) {
+      setState(() {
+        _selectedLocation = result;
+      });
+    }
   }
 
   @override
@@ -372,13 +377,17 @@ class _ReportBreedingSiteState extends State<ReportBreedingSite> {
                       ],
                     ),
               const SizedBox(height: 20),
-              TextField(
-                controller: _locationController,
-                decoration: const InputDecoration(
-                  labelText: "Location of the Breeding Site",
-                  border: OutlineInputBorder(),
-                ),
+              ElevatedButton.icon(
+                onPressed: _selectLocationOnMap,
+                icon: const Icon(Icons.map),
+                label: const Text("Mark Location on Map"),
               ),
+              const SizedBox(height: 10),
+              if (_selectedLocation != null)
+                Text(
+                  "Selected Location: Lat: ${_selectedLocation!.latitude}, Lng: ${_selectedLocation!.longitude}",
+                  style: const TextStyle(fontSize: 16),
+                ),
               const SizedBox(height: 20),
               TextField(
                 controller: _reasonController,
@@ -398,6 +407,63 @@ class _ReportBreedingSiteState extends State<ReportBreedingSite> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Separate Map Screen for Location Selection
+class MapScreen extends StatefulWidget {
+  const MapScreen({super.key});
+
+  @override
+  _MapScreenState createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  LatLng _initialPosition = const LatLng(3.1390, 101.6869); // Default location
+
+  LatLng? _selectedLocation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Select Location"),
+      ),
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _initialPosition,
+              zoom: 12,
+            ),
+            onTap: (LatLng position) {
+              setState(() {
+                _selectedLocation = position;
+              });
+            },
+            markers: _selectedLocation != null
+                ? {
+                    Marker(
+                      markerId: const MarkerId("selected"),
+                      position: _selectedLocation!,
+                    )
+                  }
+                : {},
+          ),
+          if (_selectedLocation != null)
+            Positioned(
+              bottom: 20,
+              left: 20,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context, _selectedLocation);
+                },
+                child: const Text("Confirm Location"),
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -1,4 +1,3 @@
-// File: lib/user/user_home_page.dart
 import 'package:flutter/material.dart';
 import '../user/report_breeding_site.dart';
 import '../user/play_snake_game.dart';

@@ -46,7 +46,6 @@ dependencies:
   flutter_polyline_points: ^2.1.0
   location: ^7.0.1
   google_places_flutter: ^2.0.9
-  ar_flutter_plugin: ^0.7.3
 
 dev_dependencies:
   flutter_test:
