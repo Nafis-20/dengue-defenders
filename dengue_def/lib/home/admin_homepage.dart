@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
+import '../profile_page.dart';
 
 class AdminHomePage extends StatelessWidget {
   const AdminHomePage({super.key});
-
-  void _navigateToProfile(BuildContext context) {
-    // Add navigation to profile page here
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +26,14 @@ class AdminHomePage extends StatelessWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.account_circle, size: 32),
-                    onPressed: () => _navigateToProfile(context),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfilePage(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
