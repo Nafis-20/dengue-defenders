@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
+import 'package:vector_math/vector_math_64.dart'; // Ensure this is added for Vector3
 
 class RedSphereARPage extends StatefulWidget {
   const RedSphereARPage({super.key});
@@ -9,51 +10,50 @@ class RedSphereARPage extends StatefulWidget {
 }
 
 class _RedSphereARPageState extends State<RedSphereARPage> {
-  late ARSessionManager _arSessionManager;
-  late ARObjectManager _arObjectManager;
+  late ARSessionManager arSessionManager;
+  late ARObjectManager arObjectManager;
 
   @override
   void dispose() {
-    _arSessionManager.dispose();
-    _arObjectManager.dispose();
+    arSessionManager.dispose();
+    arObjectManager.dispose();
     super.dispose();
   }
 
-  void _onARViewCreated(
-    ARSessionManager arSessionManager,
-    ARObjectManager arObjectManager,
+  void onARViewCreated(
+    ARSessionManager sessionManager,
+    ARObjectManager objectManager,
+    ARAnchorManager anchorManager,
+    ARLocationManager locationManager,
   ) {
-    _arSessionManager = arSessionManager;
-    _arObjectManager = arObjectManager;
+    arSessionManager = sessionManager;
+    arObjectManager = objectManager;
 
-    _arSessionManager.onInitialize(
+    arSessionManager.onInitialize(
       showFeaturePoints: false,
       showPlanes: true,
-      customPlaneTexturePath: null,
       showWorldOrigin: true,
     );
 
-    _arObjectManager.onInitialize();
-    _addRedSphere();
+    arObjectManager.onInitialize();
+    addRedSphere();
   }
 
-  Future<void> _addRedSphere() async {
+  Future<void> addRedSphere() async {
     final node = ARNode(
       type: NodeType.sphere,
       materials: [
-        ARMaterial(
-          color: Colors.red,
-        ),
+        ARMaterial(color: Colors.red),
       ],
-      scale: Vector3(0.1, 0.1, 0.1), // Adjust scale
-      position: Vector3(0.0, 0.0, -1.0), // Place 1 meter in front of the camera
+      position: Vector3(0, 0, -1), // 1 meter in front
+      scale: Vector3(0.1, 0.1, 0.1), // 10 cm sphere
     );
 
-    bool? didAddNode = await _arObjectManager.addNode(node);
-    if (didAddNode) {
-      print('Red sphere added successfully!');
+    bool? didAddNode = await arObjectManager.addNode(node);
+    if (didAddNode == true) {
+      print("Red sphere added successfully!");
     } else {
-      print('Failed to add red sphere.');
+      print("Failed to add red sphere.");
     }
   }
 
@@ -64,7 +64,7 @@ class _RedSphereARPageState extends State<RedSphereARPage> {
         title: const Text('Red Sphere AR'),
       ),
       body: ARView(
-        onARViewCreated: _onARViewCreated,
+        onARViewCreated: onARViewCreated,
         planeDetectionConfig: PlaneDetectionConfig.horizontalAndVertical,
       ),
     );
