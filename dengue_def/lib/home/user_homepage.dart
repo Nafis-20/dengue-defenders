@@ -153,12 +153,12 @@ class UserHomePage extends StatelessWidget {
                       title: "Let's See AR",
                       icon: Icons.games,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RedSphereARPage(),
-                          ),
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => const RedSphereARPage(),
+                        //   ),
+                        // );
                       },
                     ),
                   ],
