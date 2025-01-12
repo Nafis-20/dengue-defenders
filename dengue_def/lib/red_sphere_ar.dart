@@ -50,7 +50,7 @@ class _RedSphereARPageState extends State<RedSphereARPage> {
     );
 
     bool? didAddNode = await _arObjectManager.addNode(node);
-    if (didAddNode != null && didAddNode) {
+    if (didAddNode) {
       print('Red sphere added successfully!');
     } else {
       print('Failed to add red sphere.');

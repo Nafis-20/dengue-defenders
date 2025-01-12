@@ -226,7 +226,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  LatLng _initialPosition = const LatLng(3.1390, 101.6869); // Default location
+  final LatLng _initialPosition =
+      const LatLng(3.1390, 101.6869); // Default location
 
   LatLng? _selectedLocation;
 
