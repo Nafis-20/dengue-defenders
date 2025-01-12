@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../profile_page.dart';
+import '../user/check_hotspot.dart';
+import '../admin/verify_site.dart';
 
 class AdminHomePage extends StatelessWidget {
   const AdminHomePage({super.key});
@@ -93,12 +95,12 @@ class AdminHomePage extends StatelessWidget {
                       title: "Verify Breeding Sites",
                       icon: Icons.check_circle,
                       onTap: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) => const VerifyBreedingSite(),
-                        //   ),
-                        // );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const VerifySitePage(),
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 10), // Reduced gap between buttons
@@ -107,12 +109,12 @@ class AdminHomePage extends StatelessWidget {
                       title: "Check Breeding Sites",
                       icon: Icons.search,
                       onTap: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) => const CheckBreedingSite(),
-                        //   ),
-                        // );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CheckHotspotMapPage(),
+                          ),
+                        );
                       },
                     ),
                   ],
