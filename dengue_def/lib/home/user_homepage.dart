@@ -4,6 +4,7 @@ import '../user/play_snake_game.dart';
 import '../user/play_tictactoe.dart';
 import '../user/check_hotspot.dart';
 import '../profile_page.dart';
+import '../red_sphere_ar.dart';
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({super.key});
@@ -142,6 +143,20 @@ class UserHomePage extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => const TicTacToeGame(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10), // Reduced gap between buttons
+                    _buildDutyButton(
+                      context,
+                      title: "Let's See AR",
+                      icon: Icons.games,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RedSphereARPage(),
                           ),
                         );
                       },
