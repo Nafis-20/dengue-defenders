@@ -46,8 +46,8 @@ dependencies:
   flutter_polyline_points: ^2.1.0
   location: ^7.0.1
   google_places_flutter: ^2.0.9
-  # arcore_flutter_plugin: ^0.1.0
   vector_math: ^2.1.4
+  arcore_flutter_plugin: ^0.1.0
 
 dev_dependencies:
   flutter_test:
