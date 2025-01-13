@@ -4,7 +4,6 @@ import '../user/play_snake_game.dart';
 import '../user/play_tictactoe.dart';
 import '../user/check_hotspot.dart';
 import '../profile_page.dart';
-import '../red_sphere_ar.dart';
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({super.key});
