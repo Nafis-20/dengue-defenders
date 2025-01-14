@@ -1,57 +1,80 @@
-// import 'package:flutter/material.dart';
-// import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
-// import 'package:vector_math/vector_math_64.dart' as vector;
+import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
+import 'package:flutter/material.dart';
 
-// class ARImageViewPage extends StatefulWidget {
-//   @override
-//   _ARImageViewPageState createState() => _ARImageViewPageState();
-// }
+class ARSpherePage extends StatefulWidget {
+  @override
+  _ARSpherePageState createState() => _ARSpherePageState();
+}
 
-// class _ARImageViewPageState extends State<ARImageViewPage> {
-//   late ArCoreController arCoreController;
+class _ARSpherePageState extends State<ARSpherePage> {
+  late ARSessionManager arSessionManager;
+  late ARObjectManager arObjectManager;
 
-//   @override
-//   void initState() {
-//     super.initState();
-//   }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('AR Red Sphere'),
+      ),
+      body: Stack(
+        children: [
+          ARView(
+            onARViewCreated: onARViewCreated,
+          ),
+          Positioned(
+            bottom: 20,
+            left: 20,
+            child: ElevatedButton(
+              onPressed: addRedSphere,
+              child: const Text('Add Red Sphere'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-//   @override
-//   void dispose() {
-//     super.dispose();
-//     arCoreController.dispose();
-//   }
+  void onARViewCreated(
+      ARSessionManager sessionManager, ARObjectManager objectManager) {
+    arSessionManager = sessionManager;
+    arObjectManager = objectManager;
 
-//   void _onArCoreViewCreated(ArCoreController controller) {
-//     arCoreController = controller;
-//     _addImageToAr();
-//   }
+    arSessionManager.onInitialize(
+      showFeaturePoints: false,
+      showPlanes: true,
+      customPlaneTexturePath: null,
+      showWorldOrigin: true,
+    );
 
-//   // Method to add the image to the AR view
-//   void _addImageToAr() async {
-//     final node = ArCoreNode(
-//       image: 'assets/logo.png', // Path to the image in your assets folder
-//       position:
-//           vector.Vector3(0, 0, -1), // Position it 1 meter away from the camera
-//       scale: vector.Vector3(0.2, 0.2, 0.2), // Scale the image
-//     );
-//     arCoreController.addArCoreNodeWithAnchor(node);
-//   }
+    arObjectManager.onInitialize();
+  }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text("AR Image Display"),
-//       ),
-//       body: ArCoreView(
-//         onArCoreViewCreated: _onArCoreViewCreated,
-//       ),
-//     );
-//   }
-// }
+  Future<void> addRedSphere() async {
+    final sphereNode = ARNode(
+      shape: ARSphere(
+        radius: 0.2, // Radius of the sphere (in meters)
+        materials: [
+          ARMaterial(
+            color: Colors.red,
+          ),
+        ],
+      ),
+      position: Vector3(0.0, 0.0, -1.0), // Position in AR space
+      rotation: Vector4(0.0, 0.0, 0.0, 0.0), // No rotation
+    );
 
-// void main() {
-//   runApp(MaterialApp(
-//     home: ARImageViewPage(),
-//   ));
-// }
+    bool didAddNode = await arObjectManager.addNode(sphereNode);
+    if (didAddNode) {
+      print('Red sphere added successfully!');
+    } else {
+      print('Failed to add red sphere.');
+    }
+  }
+
+  @override
+  void dispose() {
+    arSessionManager.dispose();
+    arObjectManager.dispose();
+    super.dispose();
+  }
+}
