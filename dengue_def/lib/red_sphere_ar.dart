@@ -1,60 +1,86 @@
+import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
 import 'package:flutter/material.dart';
-import 'package:ar_flutter_plugin_flutterflow/ar_flutter_plugin_flutterflow.dart';
-import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math_64.dart' as vector;
 
-class ARSpherePage extends StatefulWidget {
+class HelloWorld extends StatefulWidget {
   @override
-  _ARSpherePageState createState() => _ARSpherePageState();
+  _HelloWorldState createState() => _HelloWorldState();
 }
 
-class _ARSpherePageState extends State<ARSpherePage> {
-  late ARSessionManager arSessionManager;
-  late ARObjectManager arObjectManager;
-
-  @override
-  void dispose() {
-    super.dispose();
-    arSessionManager.dispose();
-  }
+class _HelloWorldState extends State<HelloWorld> {
+  ArCoreController arCoreController;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("AR Red Sphere"),
-      ),
-      body: ARView(
-        onARViewCreated: _onARViewCreated,
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Hello World'),
+        ),
+        body: ArCoreView(
+          onArCoreViewCreated: _onArCoreViewCreated,
+        ),
       ),
     );
   }
 
-  void _onARViewCreated(
-      ARSessionManager sessionManager, ARObjectManager objectManager) {
-    arSessionManager = sessionManager;
-    arObjectManager = objectManager;
+  void _onArCoreViewCreated(ArCoreController controller) {
+    arCoreController = controller;
 
-    // Initialize AR session
-    arSessionManager.onInitialize(
-      showFeature: true,
-      handleTaps: true,
-    );
-
-    // Create and add a red sphere
-    _addRedSphere();
+    _addSphere(arCoreController);
+    _addCylindre(arCoreController);
+    _addCube(arCoreController);
   }
 
-  void _addRedSphere() {
-    // Create a 3D node for the red sphere
-    final redSphereNode = ARNode(
-      type: NodeType.local, // Local asset (not web-based)
-      uri: 'assets/red_sphere.obj', // Add your red sphere model in assets
-      position:
-          Vector3(0, 0, -1), // Position the model 1 meter away from the user
-      scale: Vector3(0.2, 0.2, 0.2), // Scale the sphere to a reasonable size
+  void _addSphere(ArCoreController controller) {
+    final material = ArCoreMaterial(color: Color.fromARGB(120, 66, 134, 244));
+    final sphere = ArCoreSphere(
+      materials: [material],
+      radius: 0.1,
     );
+    final node = ArCoreNode(
+      shape: sphere,
+      position: vector.Vector3(0, 0, -1.5),
+    );
+    controller.addArCoreNode(node);
+  }
 
-    // Add the node to the AR scene
-    arObjectManager.addNode(redSphereNode);
+  void _addCylindre(ArCoreController controller) {
+    final material = ArCoreMaterial(
+      color: Colors.red,
+      reflectance: 1.0,
+    );
+    final cylindre = ArCoreCylinder(
+      materials: [material],
+      radius: 0.5,
+      height: 0.3,
+    );
+    final node = ArCoreNode(
+      shape: cylindre,
+      position: vector.Vector3(0.0, -0.5, -2.0),
+    );
+    controller.addArCoreNode(node);
+  }
+
+  void _addCube(ArCoreController controller) {
+    final material = ArCoreMaterial(
+      color: Color.fromARGB(120, 66, 134, 244),
+      metallic: 1.0,
+    );
+    final cube = ArCoreCube(
+      materials: [material],
+      size: vector.Vector3(0.5, 0.5, 0.5),
+    );
+    final node = ArCoreNode(
+      shape: cube,
+      position: vector.Vector3(-0.5, 0.5, -3.5),
+    );
+    controller.addArCoreNode(node);
+  }
+
+  @override
+  void dispose() {
+    arCoreController.dispose();
+    super.dispose();
   }
 }
