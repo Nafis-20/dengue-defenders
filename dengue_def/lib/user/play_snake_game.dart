@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'package:image_picker/image_picker.dart'; // For camera functionality
 
 class SnakeLadderGame extends StatefulWidget {
   const SnakeLadderGame({super.key});
@@ -40,30 +39,35 @@ class _SnakeLadderGameState extends State<SnakeLadderGame> {
     71: 91,
   };
 
+  double tileSize = 40.0;
+
+  Offset getTilePosition(int position) {
+    int row = (position - 1) ~/ 10;
+    int col = (position - 1) % 10;
+
+    if (row % 2 == 0) {
+      col = 9 - col; // Reverse direction for even rows
+    }
+
+    row = 9 - row; // Flip rows (bottom to top)
+
+    return Offset(col * tileSize + tileSize / 2, row * tileSize + tileSize / 2);
+  }
+
   void rollDice() async {
     if (gameOver) return;
 
     setState(() {
       diceRoll = Random().nextInt(6) + 1;
-      if (currentPlayer == 1) {
-        player1Position += diceRoll;
-        if (player1Position > 100) {
-          player1Position = 100 - (player1Position - 100);
-        }
-        handlePosition(player1Position, 1);
-      } else {
-        player2Position += diceRoll;
-        if (player2Position > 100) {
-          player2Position = 100 - (player2Position - 100);
-        }
-        handlePosition(player2Position, 2);
-      }
     });
+
+    await movePlayer(diceRoll);
 
     if (player1Position == 100 || player2Position == 100) {
       setState(() {
         gameOver = true;
       });
+      showWinDialog(currentPlayer == 1 ? "Player 1" : "Player 2");
     } else {
       setState(() {
         currentPlayer = currentPlayer == 1 ? 2 : 1;
@@ -71,52 +75,46 @@ class _SnakeLadderGameState extends State<SnakeLadderGame> {
     }
   }
 
-  Future<void> handlePosition(int position, int player) async {
-    if (snakes.containsKey(position)) {
-      await showSnakeOrLadderDialog(false, player);
-      setState(() {
-        if (player == 1) {
-          player1Position = snakes[position]!;
-        } else {
-          player2Position = snakes[position]!;
-        }
-      });
-    } else if (ladders.containsKey(position)) {
-      await showSnakeOrLadderDialog(true, player);
-      setState(() {
-        if (player == 1) {
-          player1Position = ladders[position]!;
-        } else {
-          player2Position = ladders[position]!;
-        }
+  Future<void> movePlayer(int steps) async {
+    for (int i = 0; i < steps; i++) {
+      await Future.delayed(const Duration(milliseconds: 500), () {
+        setState(() {
+          if (currentPlayer == 1) {
+            player1Position++;
+            if (player1Position > 100) player1Position = 100;
+          } else {
+            player2Position++;
+            if (player2Position > 100) player2Position = 100;
+          }
+        });
       });
     }
+    handlePosition(
+        currentPlayer == 1 ? player1Position : player2Position, currentPlayer);
   }
 
-  Future<void> showSnakeOrLadderDialog(bool isLadder, int player) async {
-    final picker = ImagePicker();
-    await picker.pickImage(source: ImageSource.camera);
-
-    String title = isLadder ? "Ladder!" : "Snake!";
-    String message = isLadder
-        ? "Great job! Remember to clean stagnant water and cover water storage."
-        : "Oh no! Avoid leaving garbage in open areas and allowing water to accumulate.";
-
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
+  void handlePosition(int position, int player) {
+    if (snakes.containsKey(position)) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        setState(() {
+          if (player == 1) {
+            player1Position = snakes[position]!;
+          } else {
+            player2Position = snakes[position]!;
+          }
+        });
+      });
+    } else if (ladders.containsKey(position)) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        setState(() {
+          if (player == 1) {
+            player1Position = ladders[position]!;
+          } else {
+            player2Position = ladders[position]!;
+          }
+        });
+      });
+    }
   }
 
   void resetGame() {
@@ -129,100 +127,33 @@ class _SnakeLadderGameState extends State<SnakeLadderGame> {
     });
   }
 
-  Widget buildTile(int number) {
-    bool isPlayer1 = (number == player1Position);
-    bool isPlayer2 = (number == player2Position);
-    bool isSnake = snakes.containsKey(number);
-    bool isLadder = ladders.containsKey(number);
-
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black),
-        color: isPlayer1
-            ? Colors.blue
-            : isPlayer2
-                ? Colors.yellow
-                : isSnake
-                    ? Colors.red.shade400
-                    : isLadder
-                        ? Colors.green.shade400
-                        : Colors.white,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Text(
-            '$number',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+  void showWinDialog(String winner) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("🎉 Congratulations! $winner Wins! 🎉"),
+          content: const Text(
+              "Would you like to play again or return to the homepage?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                resetGame();
+              },
+              child: const Text("Rematch"),
             ),
-          ),
-          if (isPlayer1)
-            Positioned(
-              bottom: 4,
-              child: CircleAvatar(
-                radius: 8,
-                backgroundColor: Colors.blue,
-              ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Navigate back to homepage
+              },
+              child: const Text("Homepage"),
             ),
-          if (isPlayer2)
-            Positioned(
-              top: 4,
-              child: CircleAvatar(
-                radius: 8,
-                backgroundColor: Colors.yellow,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildBoard() {
-    List<Widget> tiles = [];
-    bool leftToRight = true;
-
-    for (int row = 0; row < 10; row++) {
-      List<int> rowNumbers =
-          List.generate(10, (index) => (row * 10 + index + 1));
-      if (!leftToRight) rowNumbers = rowNumbers.reversed.toList();
-
-      tiles.addAll(rowNumbers.map((number) => buildTile(number)));
-
-      leftToRight = !leftToRight;
-    }
-
-    return GridView.builder(
-      reverse: true, // Ensures 1 is at the bottom
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 10,
-      ),
-      itemCount: 100,
-      itemBuilder: (context, index) {
-        return tiles[index];
+          ],
+        );
       },
-    );
-  }
-
-  Widget buildInfoRow(Map<int, int> mapping, String title) {
-    List<String> entries =
-        mapping.entries.map((e) => "${e.key} → ${e.value}").toList();
-
-    String firstLine = entries.sublist(0, entries.length ~/ 2).join(', ');
-    String secondLine = entries.sublist(entries.length ~/ 2).join(', ');
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Text(firstLine),
-        Text(secondLine),
-      ],
     );
   }
 
@@ -238,61 +169,47 @@ class _SnakeLadderGameState extends State<SnakeLadderGame> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: buildBoard(),
+          // Board Background with Snakes and Ladders
+          Positioned.fill(
+            child: CustomPaint(
+              painter: BoardPainter(
+                  snakes: snakes, ladders: ladders, tileSize: tileSize),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Text(
-                  'Player 1 Position: $player1Position',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+          // Player Positions
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            left: getTilePosition(player1Position).dx - 15,
+            top: getTilePosition(player1Position).dy - 15,
+            child: const PlayerAvatar(color: Colors.blue),
+          ),
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            left: getTilePosition(player2Position).dx - 15,
+            top: getTilePosition(player2Position).dy - 15,
+            child: const PlayerAvatar(color: Colors.yellow),
+          ),
+          // Controls and Info
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Dice Roll: $diceRoll',
+                    style: const TextStyle(fontSize: 18),
                   ),
-                ),
-                Text(
-                  'Player 2 Position: $player2Position',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: gameOver ? null : rollDice,
+                    child: const Text('Roll Dice'),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Dice Roll: $diceRoll',
-                  style: const TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                buildInfoRow(ladders, "Ladders (Start → End):"),
-                const SizedBox(height: 8),
-                buildInfoRow(snakes, "Snakes (Start → End):"),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: gameOver ? null : rollDice,
-                  child: const Text('Roll Dice'),
-                ),
-                if (gameOver)
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Game Over! Player ${player1Position == 100 ? 1 : 2} Wins!',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -301,323 +218,152 @@ class _SnakeLadderGameState extends State<SnakeLadderGame> {
   }
 }
 
-// import 'package:flutter/material.dart';
-// import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
-// import 'dart:math';
-// import 'package:vector_math/vector_math_64.dart' as vector;
+class BoardPainter extends CustomPainter {
+  final Map<int, int> snakes;
+  final Map<int, int> ladders;
+  final double tileSize;
 
-// class SnakeLadderGame extends StatefulWidget {
-//   const SnakeLadderGame({super.key});
+  BoardPainter(
+      {required this.snakes, required this.ladders, required this.tileSize});
 
-//   @override
-//   _SnakeLadderGameState createState() => _SnakeLadderGameState();
-// }
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
 
-// class _SnakeLadderGameState extends State<SnakeLadderGame> {
-//   int player1Position = 1;
-//   int player2Position = 1;
-//   int currentPlayer = 1;
-//   int diceRoll = 0;
-//   bool gameOver = false;
+    // Draw Board Tiles
+    for (int row = 0; row < 10; row++) {
+      for (int col = 0; col < 10; col++) {
+        final isEvenTile = (row + col) % 2 == 0;
+        paint.color = isEvenTile ? Colors.teal.shade200 : Colors.teal.shade300;
+        canvas.drawRect(
+          Rect.fromLTWH(col * tileSize, row * tileSize, tileSize, tileSize),
+          paint,
+        );
 
-//   final Map<int, int> snakes = {
-//     16: 6,
-//     47: 26,
-//     49: 11,
-//     56: 53,
-//     62: 19,
-//     64: 60,
-//     87: 24,
-//     93: 73,
-//     95: 75,
-//     98: 78,
-//   };
+        // Draw Tile Numbers
+        final tileNumber = (9 - row) * 10 + (row % 2 == 0 ? col + 1 : 10 - col);
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: tileNumber.toString(),
+            style: const TextStyle(fontSize: 12, color: Colors.black),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        textPainter.paint(
+          canvas,
+          Offset(
+            col * tileSize + tileSize / 4,
+            row * tileSize + tileSize / 4,
+          ),
+        );
+      }
+    }
 
-//   final Map<int, int> ladders = {
-//     4: 14,
-//     9: 31,
-//     21: 42,
-//     28: 84,
-//     40: 59,
-//     51: 67,
-//     63: 81,
-//     71: 91,
-//   };
+    // Draw Ladders
+    paint.color = Colors.brown;
+    paint.strokeWidth = 6.0;
+    for (var entry in ladders.entries) {
+      final start = getTilePosition(entry.key);
+      final end = getTilePosition(entry.value);
+      canvas.drawLine(start, end, paint);
+    }
 
-//   void rollDice() async {
-//     if (gameOver) return;
+    // Draw Snakes
+    final snakePaint = Paint()
+      ..color = Colors.red
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0;
 
-//     setState(() {
-//       diceRoll = Random().nextInt(6) + 1;
-//       if (currentPlayer == 1) {
-//         player1Position += diceRoll;
-//         if (player1Position > 100) {
-//           player1Position = 100 - (player1Position - 100);
-//         }
-//         handlePosition(player1Position, 1);
-//       } else {
-//         player2Position += diceRoll;
-//         if (player2Position > 100) {
-//           player2Position = 100 - (player2Position - 100);
-//         }
-//         handlePosition(player2Position, 2);
-//       }
-//     });
+    for (var entry in snakes.entries) {
+      final start = getTilePosition(entry.key);
+      final end = getTilePosition(entry.value);
 
-//     if (player1Position == 100 || player2Position == 100) {
-//       setState(() {
-//         gameOver = true;
-//       });
-//     } else {
-//       setState(() {
-//         currentPlayer = currentPlayer == 1 ? 2 : 1;
-//       });
+      final path = Path()
+        ..moveTo(start.dx, start.dy)
+        ..quadraticBezierTo(
+          (start.dx + end.dx) / 2,
+          (start.dy + end.dy) / 2 - 20,
+          end.dx,
+          end.dy,
+        );
+
+      canvas.drawPath(path, snakePaint);
+    }
+  }
+
+  Offset getTilePosition(int position) {
+    int row = (position - 1) ~/ 10;
+    int col = (position - 1) % 10;
+
+    if (row % 2 == 0) {
+      col = 9 - col;
+    }
+    row = 9 - row;
+
+    return Offset(col * tileSize + tileSize / 2, row * tileSize + tileSize / 2);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
+class PlayerAvatar extends StatelessWidget {
+  final Color color;
+
+  const PlayerAvatar({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(2, 2),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+//   void drawSnake(Canvas canvas, Offset start, Offset end) {
+//     final path = Path()
+//       ..moveTo(start.dx, start.dy)
+//       ..quadraticBezierTo(
+//         (start.dx + end.dx) / 2,
+//         (start.dy + end.dy) / 2 - 30,
+//         end.dx,
+//         end.dy,
+//       );
+
+//     final snakePaint = Paint()
+//       ..color = Colors.red
+//       ..style = PaintingStyle.stroke
+//       ..strokeWidth = 6.0;
+
+//     canvas.drawPath(path, snakePaint);
+
+//     // Draw head and tail markers
+//     canvas.drawCircle(start, 8.0, snakePaint..style = PaintingStyle.fill);
+//     canvas.drawCircle(end, 5.0, snakePaint);
+//   }
+
+//   Offset getTilePosition(int position) {
+//     int row = (position - 1) ~/ 10;
+//     int col = (position - 1) % 10;
+
+//     if (row % 2 == 0) {
+//       col = 9 - col;
 //     }
+//     row = 9 - row;
+
+//     return Offset(col * tileSize + tileSize / 2, row * tileSize + tileSize / 2);
 //   }
-
-//   Future<void> handlePosition(int position, int player) async {
-//     if (snakes.containsKey(position)) {
-//       await showARView("Oh no! Avoid leaving garbage in open areas.");
-//       setState(() {
-//         if (player == 1) {
-//           player1Position = snakes[position]!;
-//         } else {
-//           player2Position = snakes[position]!;
-//         }
-//       });
-//     } else if (ladders.containsKey(position)) {
-//       await showARView("Great job! Remember to clean stagnant water.");
-//       setState(() {
-//         if (player == 1) {
-//           player1Position = ladders[position]!;
-//         } else {
-//           player2Position = ladders[position]!;
-//         }
-//       });
-//     }
-//   }
-
-//   Future<void> showARView(String message) async {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => ARScreen(message: message),
-//       ),
-//     );
-//   }
-
-//   void resetGame() {
-//     setState(() {
-//       player1Position = 1;
-//       player2Position = 1;
-//       currentPlayer = 1;
-//       diceRoll = 0;
-//       gameOver = false;
-//     });
-//   }
-
-//   Widget buildTile(int number) {
-//     bool isPlayer1 = (number == player1Position);
-//     bool isPlayer2 = (number == player2Position);
-//     bool isSnake = snakes.containsKey(number);
-//     bool isLadder = ladders.containsKey(number);
-
-//     return Container(
-//       decoration: BoxDecoration(
-//         border: Border.all(color: Colors.black),
-//         color: isPlayer1
-//             ? Colors.blue
-//             : isPlayer2
-//                 ? Colors.yellow
-//                 : isSnake
-//                     ? Colors.red.shade400
-//                     : isLadder
-//                         ? Colors.green.shade400
-//                         : Colors.white,
-//       ),
-//       child: Stack(
-//         alignment: Alignment.center,
-//         children: [
-//           Text(
-//             '$number',
-//             style: const TextStyle(
-//               fontSize: 12,
-//               fontWeight: FontWeight.bold,
-//               color: Colors.black,
-//             ),
-//           ),
-//           if (isPlayer1)
-//             Positioned(
-//               bottom: 4,
-//               child: CircleAvatar(
-//                 radius: 8,
-//                 backgroundColor: Colors.blue,
-//               ),
-//             ),
-//           if (isPlayer2)
-//             Positioned(
-//               top: 4,
-//               child: CircleAvatar(
-//                 radius: 8,
-//                 backgroundColor: Colors.yellow,
-//               ),
-//             ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget buildBoard() {
-//     List<Widget> tiles = [];
-//     bool leftToRight = true;
-
-//     for (int row = 0; row < 10; row++) {
-//       List<int> rowNumbers =
-//           List.generate(10, (index) => (row * 10 + index + 1));
-//       if (!leftToRight) rowNumbers = rowNumbers.reversed.toList();
-
-//       tiles.addAll(rowNumbers.map((number) => buildTile(number)));
-
-//       leftToRight = !leftToRight;
-//     }
-
-//     return GridView.builder(
-//       reverse: true, // Ensures 1 is at the bottom
-//       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-//         crossAxisCount: 10,
-//       ),
-//       itemCount: 100,
-//       itemBuilder: (context, index) {
-//         return tiles[index];
-//       },
-//     );
-//   }
-
-//   Widget buildInfoRow(Map<int, int> mapping, String title) {
-//     List<String> entries =
-//         mapping.entries.map((e) => "${e.key} → ${e.value}").toList();
-
-//     String firstLine = entries.sublist(0, entries.length ~/ 2).join(', ');
-//     String secondLine = entries.sublist(entries.length ~/ 2).join(', ');
-
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Text(
-//           title,
-//           style: const TextStyle(fontWeight: FontWeight.bold),
-//         ),
-//         Text(firstLine),
-//         Text(secondLine),
-//       ],
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Snake and Ladder'),
-//         actions: [
-//           IconButton(
-//             onPressed: resetGame,
-//             icon: const Icon(Icons.refresh),
-//           ),
-//         ],
-//       ),
-//       body: Column(
-//         children: [
-//           Expanded(
-//             child: Padding(
-//               padding: const EdgeInsets.all(8.0),
-//               child: buildBoard(),
-//             ),
-//           ),
-//           Padding(
-//             padding: const EdgeInsets.all(8.0),
-//             child: Column(
-//               children: [
-//                 Text(
-//                   'Player 1 Position: $player1Position',
-//                   style: const TextStyle(
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 Text(
-//                   'Player 2 Position: $player2Position',
-//                   style: const TextStyle(
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 8),
-//                 Text(
-//                   'Dice Roll: $diceRoll',
-//                   style: const TextStyle(
-//                     fontSize: 16,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 16),
-//                 buildInfoRow(ladders, "Ladders (Start → End):"),
-//                 const SizedBox(height: 8),
-//                 buildInfoRow(snakes, "Snakes (Start → End):"),
-//                 const SizedBox(height: 16),
-//                 ElevatedButton(
-//                   onPressed: gameOver ? null : rollDice,
-//                   child: const Text('Roll Dice'),
-//                 ),
-//                 if (gameOver)
-//                   Padding(
-//                     padding: const EdgeInsets.all(8.0),
-//                     child: Text(
-//                       'Game Over! Player ${player1Position == 100 ? 1 : 2} Wins!',
-//                       style: const TextStyle(
-//                         fontSize: 18,
-//                         fontWeight: FontWeight.bold,
-//                         color: Colors.green,
-//                       ),
-//                     ),
-//                   ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-// class ARScreen extends StatelessWidget {
-//   final String message;
-
-//   const ARScreen({required this.message, Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text("AR View")),
-//       body: ArCoreView(
-//         onArCoreViewCreated: _onArCoreViewCreated,
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         child: const Icon(Icons.close),
-//         onPressed: () {
-//           Navigator.pop(context);
-//         },
-//       ),
-//     );
-//   }
-
-//   void _onArCoreViewCreated(ArCoreController controller) {
-//     controller.addArCoreNode(
-//       ArCoreNode(
-//         shape: ArCoreSphere(
-//           materials: [ArCoreMaterial(color: Colors.red)],
-//           radius: 0.1,
-//         ),
-//         position: vector.Vector3(0, 0, -1), // Position the ball 1m away
-//       ),
-//     );
-//   }
-// }
