@@ -1,10 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../profile_page.dart';
 import '../user/check_hotspot.dart';
 import '../admin/verify_site.dart';
+import '../user/breeding_site_details.dart';
 
-class AdminHomePage extends StatelessWidget {
+class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
+
+  @override
+  _AdminHomePageState createState() => _AdminHomePageState();
+}
+
+class _AdminHomePageState extends State<AdminHomePage> {
+  int _verifiedCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchVerifiedCount();
+  }
+
+  Future<void> _fetchVerifiedCount() async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('site_photo')
+          .where('status', isEqualTo: 'verified')
+          .get();
+
+      setState(() {
+        _verifiedCount = querySnapshot.size;
+      });
+    } catch (e) {
+      debugPrint('Error fetching verified count: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +45,7 @@ class AdminHomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16), // Padding at the top
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -46,7 +76,7 @@ class AdminHomePage extends StatelessWidget {
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 30), // Increased gap here
+              const SizedBox(height: 30),
 
               // Admin Tasks Section
               const Text(
@@ -66,17 +96,28 @@ class AdminHomePage extends StatelessWidget {
                     count: 45,
                     color: Colors.orange,
                     icon: Icons.pending_actions,
+                    onTap: () {
+                      // Add navigation logic here if needed
+                    },
                   ),
                   _buildTaskCard(
                     context,
                     title: "Verified Breeding Sites",
-                    count: 120,
+                    count: _verifiedCount,
                     color: Colors.green,
                     icon: Icons.verified,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BreedingSiteDetailsPage(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 40), // Increased gap between sections
+              const SizedBox(height: 40),
 
               // Admin Actions Section
               const Text(
@@ -86,7 +127,7 @@ class AdminHomePage extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10), // Reduced gap
+              const SizedBox(height: 10),
               Expanded(
                 child: ListView(
                   children: [
@@ -103,7 +144,7 @@ class AdminHomePage extends StatelessWidget {
                         );
                       },
                     ),
-                    const SizedBox(height: 10), // Reduced gap between buttons
+                    const SizedBox(height: 10),
                     _buildDutyButton(
                       context,
                       title: "Check Breeding Sites",
@@ -131,33 +172,37 @@ class AdminHomePage extends StatelessWidget {
       {required String title,
       required int count,
       required Color color,
-      required IconData icon}) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.4,
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 40),
-          const SizedBox(height: 10),
-          Text(
-            "$count listed",
-            style: TextStyle(
-              color: color,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+      required IconData icon,
+      required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.4,
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 40),
+            const SizedBox(height: 10),
+            Text(
+              "$count listed",
+              style: TextStyle(
+                color: color,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14),
-          ),
-        ],
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
       ),
     );
   }

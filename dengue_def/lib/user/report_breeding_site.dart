@@ -49,7 +49,7 @@ class _ReportBreedingSiteState extends State<ReportBreedingSite> {
     }
 
     try {
-      // Save location and reason in Firestore
+      // Save location, reason, and status in Firestore
       await FirebaseFirestore.instance.collection('site_photo').add({
         'location': {
           'latitude': _selectedLocation!.latitude,
@@ -57,6 +57,7 @@ class _ReportBreedingSiteState extends State<ReportBreedingSite> {
         },
         'reason': _reasonController.text,
         'uploaded_at': DateTime.now(),
+        'status': 'pending', // New status field with default value
       });
 
       _showSuccessPopup();

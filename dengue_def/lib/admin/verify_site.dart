@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class VerifySitePage extends StatefulWidget {
   const VerifySitePage({super.key});
@@ -42,6 +43,17 @@ class _VerifySitePageState extends State<VerifySitePage> {
     }
   }
 
+  // Function to navigate to the Google Map page
+  void _openGoogleMap(double latitude, double longitude) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            GoogleMapScreen(latitude: latitude, longitude: longitude),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +81,10 @@ class _VerifySitePageState extends State<VerifySitePage> {
               final report = reports[index];
               final location = report['location'];
               final reason = report['reason'];
+              final status = report['status'];
               final documentId = report.id;
+              final latitude = location['latitude'];
+              final longitude = location['longitude'];
 
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -80,16 +95,30 @@ class _VerifySitePageState extends State<VerifySitePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Location: Lat ${location['latitude']}, Lng ${location['longitude']}",
+                        "Location: Lat $latitude, Lng $longitude",
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () => _openGoogleMap(latitude, longitude),
+                        child: const Text("Open in Google Map"),
+                      ),
+                      const SizedBox(height: 8),
                       Text(
                         "Reason: $reason",
                         style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Status: $status",
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.blueGrey,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -123,6 +152,39 @@ class _VerifySitePageState extends State<VerifySitePage> {
               );
             },
           );
+        },
+      ),
+    );
+  }
+}
+
+class GoogleMapScreen extends StatelessWidget {
+  final double latitude;
+  final double longitude;
+
+  const GoogleMapScreen({
+    super.key,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Google Map"),
+        centerTitle: true,
+      ),
+      body: GoogleMap(
+        initialCameraPosition: CameraPosition(
+          target: LatLng(latitude, longitude),
+          zoom: 15,
+        ),
+        markers: {
+          Marker(
+            markerId: const MarkerId("siteLocation"),
+            position: LatLng(latitude, longitude),
+          ),
         },
       ),
     );
