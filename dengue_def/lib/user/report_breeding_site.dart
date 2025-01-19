@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google Maps plugin
+import 'package:geolocator/geolocator.dart';
 
 class ReportBreedingSite extends StatefulWidget {
   const ReportBreedingSite({super.key});
@@ -226,10 +227,72 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final LatLng _initialPosition =
-      const LatLng(3.1390, 101.6869); // Default location
-
+  LatLng? _currentLocation; // Store the user's current location
   LatLng? _selectedLocation;
+  late GoogleMapController _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCurrentLocation();
+  }
+
+  Future<void> _fetchCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled, request the user to enable them
+      _showErrorPopup("Location services are disabled. Please enable them.");
+      return;
+    }
+
+    // Check for location permissions
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _showErrorPopup("Location permissions are denied.");
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _showErrorPopup(
+          "Location permissions are permanently denied. Please enable them in settings.");
+      return;
+    }
+
+    // Get the current location
+    final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    setState(() {
+      _currentLocation = LatLng(position.latitude, position.longitude);
+    });
+  }
+
+  void _showErrorPopup(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -237,40 +300,47 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         title: const Text("Select Location"),
       ),
-      body: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _initialPosition,
-              zoom: 12,
+      body: _currentLocation == null
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : Stack(
+              children: [
+                GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: _currentLocation!,
+                    zoom: 15,
+                  ),
+                  onMapCreated: (controller) {
+                    _mapController = controller;
+                  },
+                  onTap: (LatLng position) {
+                    setState(() {
+                      _selectedLocation = position;
+                    });
+                  },
+                  markers: _selectedLocation != null
+                      ? {
+                          Marker(
+                            markerId: const MarkerId("selected"),
+                            position: _selectedLocation!,
+                          )
+                        }
+                      : {},
+                ),
+                if (_selectedLocation != null)
+                  Positioned(
+                    bottom: 20,
+                    left: 20,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context, _selectedLocation);
+                      },
+                      child: const Text("Confirm Location"),
+                    ),
+                  ),
+              ],
             ),
-            onTap: (LatLng position) {
-              setState(() {
-                _selectedLocation = position;
-              });
-            },
-            markers: _selectedLocation != null
-                ? {
-                    Marker(
-                      markerId: const MarkerId("selected"),
-                      position: _selectedLocation!,
-                    )
-                  }
-                : {},
-          ),
-          if (_selectedLocation != null)
-            Positioned(
-              bottom: 20,
-              left: 20,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, _selectedLocation);
-                },
-                child: const Text("Confirm Location"),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }
