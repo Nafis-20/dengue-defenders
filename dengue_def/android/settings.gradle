@@ -24,4 +24,4 @@ plugins {
 
 include ":app"
 // include ':unityLibrary'
-// project(':unityLibrary').projectDir = new File('unityLibrary')
+// project(':unityLibrary').projectDir = new File(rootProject.projectDir, '../UnityExport')
